@@ -35,12 +35,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const { x1, z1, angle1, x2, z2, angle2 } = values;
 
     // 2. 将Minecraft角度(Yaw)转换为标准数学角度（弧度）
-    // 原理部分指出“Z轴为横轴，X轴为纵轴”，且“顺时针为正”，这与标准数学坐标系不同。
-    // 为了避免混淆和简化计算，我们直接使用一个更稳健的方法：
-    // 将Minecraft Yaw转换为标准的数学角度（0度在+X轴，逆时针为正）。
-    // 转换公式: standard_angle_rad = toRadians(-yaw - 90)
-    const alpha_rad = toRadians(-angle1 - 90);
-    const beta_rad = toRadians(-angle2 - 90);
+    // Minecraft Yaw: 0°=南(+Z), -90°=东(+X), 顺时针为正
+    // 标准数学角度: 0°=东(+X), 90°=北, 逆时针为正
+    // 修正后的转换公式: standard_angle_deg = yaw + 90
+    // 原代码 `toRadians(-yaw - 90)` 是错误的。
+    const alpha_rad = toRadians(angle1 + 90);
+    const beta_rad = toRadians(angle2 + 90);
 
     // 3. 计算点O到点P的向量和距离
     const op_dx = x2 - x1;
@@ -48,7 +48,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const op_length = Math.sqrt(op_dx * op_dx + op_dz * op_dz);
 
     if (op_length < 1) {
-      // 这是修复问题的关键点：移除了字符串中异常的空格/字符。
       resultText.textContent = "错误: 两个投掷点距离太近，请重新选择。";
       resultText.style.color = "var(--error-color)";
       resultDistance.textContent = "";
@@ -56,10 +55,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // 4. 计算向量OP的方向角 gamma
-    // Math.atan2(y, x) 在这里对应 atan2(dx, dz)，因为X是y轴，Z是x轴
-    const gamma_rad = Math.atan2(op_dx, op_dz);
+    // `Math.atan2(y, x)`，在我们的坐标系中，Z是y轴，X是x轴。
+    // 修正: `op_dz` 是 y 分量, `op_dx` 是 x 分量。
+    // 原代码 `Math.atan2(op_dx, op_dz)` 是错误的。
+    const gamma_rad = Math.atan2(op_dz, op_dx);
 
-    // 5. 根据正弦定理计算OM的长度
+    // 5. 根据正弦定理计算OM的长度 (此部分逻辑正确)
     // 三角形OPM中：
     // 边OP = op_length
     // 角M = |beta_rad - alpha_rad| (两条线的夹角)
@@ -78,11 +79,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const om_length = (op_length * sin_angle_P) / sin_angle_M;
 
     // 6. 计算要塞M的坐标
-    // 使用标准的极坐标转笛卡尔坐标公式
-    // x_M = x_O + r * cos(theta)
-    // z_M = z_O + r * sin(theta) -- 注意，在我们的坐标系里，Z是横轴，X是纵轴
-    const stronghold_z = z1 + om_length * Math.cos(alpha_rad);
-    const stronghold_x = x1 + om_length * Math.sin(alpha_rad);
+    // 使用标准的极坐标转笛卡尔坐标公式:
+    // x_new = x_old + r * cos(theta)
+    // z_new = z_old + r * sin(theta)  (因为 Z 对应标准 y 轴)
+    // 修正: 原代码将 sin 和 cos 的应用弄反了。
+    const stronghold_x = x1 + om_length * Math.cos(alpha_rad);
+    const stronghold_z = z1 + om_length * Math.sin(alpha_rad);
 
     // 7. 显示结果
     resultText.textContent = `预测要塞坐标 (X, Z): (${stronghold_x.toFixed(1)}, ${stronghold_z.toFixed(1)})`;
