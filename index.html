@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Minecraft 末地要塞定位器</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Minecraft 末地要塞定位器</h1>
+        <p>基于三角函数原理，精准、高效地计算末地要塞位置。</p>
+      </header>
+
+      <main>
+        <section id="instructions">
+          <h2>使用说明</h2>
+          <ol>
+            <li>
+              在任意位置 (点O) 投掷一颗末影之眼。在它飞行的最高点，按
+              <strong>F3</strong> 记录下你的
+              <strong>X, Z 坐标</strong> 和水平视角 <strong>角度(Yaw)</strong>。
+            </li>
+            <li>
+              沿着一个坐标轴（X或Z轴）移动一段较远的距离（推荐
+              <strong>100-300</strong> 格），到达新位置 (点P)。
+            </li>
+            <li>
+              在点P再次投掷末影之眼，同样记录下你的
+              <strong>X, Z 坐标</strong> 和 <strong>角度(Yaw)</strong>。
+            </li>
+            <li>将记录的 6 个数据填入下方的计算器，点击计算。</li>
+          </ol>
+        </section>
+
+        <section id="calculator">
+          <h2>定位计算器</h2>
+          <form id="stronghold-form">
+            <div class="point-input">
+              <h3>第一次投掷点 (O)</h3>
+              <div class="input-group">
+                <label for="x1">X 坐标:</label>
+                <input
+                  type="number"
+                  id="x1"
+                  step="0.01"
+                  placeholder="例如: 250.5"
+                  required
+                />
+              </div>
+              <div class="input-group">
+                <label for="z1">Z 坐标:</label>
+                <input
+                  type="number"
+                  id="z1"
+                  step="0.01"
+                  placeholder="例如: 1100.2"
+                  required
+                />
+              </div>
+              <div class="input-group">
+                <label for="angle1">角度 (Yaw):</label>
+                <input
+                  type="number"
+                  id="angle1"
+                  step="0.1"
+                  placeholder="例如: -35.4"
+                  required
+                />
+              </div>
+            </div>
+            <div class="point-input">
+              <h3>第二次投掷点 (P)</h3>
+              <div class="input-group">
+                <label for="x2">X 坐标:</label>
+                <input
+                  type="number"
+                  id="x2"
+                  step="0.01"
+                  placeholder="例如: 250.5"
+                  required
+                />
+              </div>
+              <div class="input-group">
+                <label for="z2">Z 坐标:</label>
+                <input
+                  type="number"
+                  id="z2"
+                  step="0.01"
+                  placeholder="例如: 800.7"
+                  required
+                />
+              </div>
+              <div class="input-group">
+                <label for="angle2">角度 (Yaw):</label>
+                <input
+                  type="number"
+                  id="angle2"
+                  step="0.1"
+                  placeholder="例如: 25.1"
+                  required
+                />
+              </div>
+            </div>
+          </form>
+          <div class="buttons">
+            <button type="button" id="calculate-btn">计算要塞坐标</button>
+            <button type="button" id="clear-btn">清空数据</button>
+          </div>
+        </section>
+
+        <section id="result">
+          <h2>计算结果</h2>
+          <p id="result-text">要塞坐标将显示在这里。</p>
+          <p id="result-distance"></p>
+        </section>
+
+        <section id="theory">
+          <h2>原理与技巧</h2>
+          <p>
+            本工具采用“解三角形”法。通过测量两点的坐标和末影之眼朝向，构建一个以玩家两点
+            (O, P) 和要塞 (M) 为顶点的三角形。利用正弦定理求解出玩家与要塞的距离
+            (OM)，再结合初始方向角，最终计算出要塞的精确坐标 (X<sub>M</sub>,
+            Z<sub>M</sub>)。
+          </p>
+          <h3>如何提高精度？</h3>
+          <ul>
+            <li>
+              <strong>拉开距离</strong>: 第二次投掷点(P)与第一次(O)的距离
+              (线段OP)
+              应足够长，推荐100-300格。距离越长，测量误差带来的影响越小。
+            </li>
+            <li>
+              <strong>避免平行</strong>: 两次投掷的视线方向 (角度α和β)
+              不应过于接近。角度差越大，交点越稳定。尽量让点P位于远离视线OM的方向上。
+            </li>
+            <li>
+              <strong>坐标精度</strong>:
+              F3界面的坐标尽可能精确记录。如果使用Mod能获得更精确的坐标和角度，计算结果会更准。
+            </li>
+            <li>
+              <strong>区块坐标修正 (Java版)</strong>:
+              计算出的坐标是理论位置。在Java版中，末地传送门框架的楼梯间生成于区块的(4,
+              4)坐标（在旧版本中是(0,0)）。到达计算位置后，可以检查附近区块的交点或中心区域，要塞入口通常就在那里。一个区块为16x16，其交点坐标为16的倍数。
+            </li>
+          </ul>
+        </section>
+      </main>
+
+      <footer>
+        <p>根据B站提供的三角定位法原理制作。纯前端，无数据上传。</p>
+      </footer>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
