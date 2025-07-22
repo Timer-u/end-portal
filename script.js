@@ -35,12 +35,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const { x1, z1, angle1, x2, z2, angle2 } = values;
 
     // 2. 将Minecraft角度(Yaw)转换为标准数学角度（弧度）
-    // Minecraft Yaw: 0°=南(+Z), -90°=东(+X), 顺时针为正
     // 标准数学角度: 0°=东(+X), 90°=北, 逆时针为正
-    // 修正后的转换公式: standard_angle_deg = yaw + 90
-    // 原代码 `toRadians(-yaw - 90)` 是错误的。
-    const alpha_rad = toRadians(angle1 + 90);
-    const beta_rad = toRadians(angle2 + 90);
+    // 正确的转换公式: standard_angle_deg = -yaw - 90
+    const alpha_rad = toRadians(-angle1 - 90);
+    const beta_rad = toRadians(-angle2 - 90);
 
     // 3. 计算点O到点P的向量和距离
     const op_dx = x2 - x1;
@@ -54,18 +52,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 4. 计算向量OP的方向角 gamma
-    // `Math.atan2(y, x)`，在我们的坐标系中，Z是y轴，X是x轴。
-    // 修正: `op_dz` 是 y 分量, `op_dx` 是 x 分量。
-    // 原代码 `Math.atan2(op_dx, op_dz)` 是错误的。
-    const gamma_rad = Math.atan2(op_dz, op_dx);
+    // 4. 计算向量OP的方向角 gamma (在标准数学坐标系中)
+    // 标准系的Y轴是北(+Y), MC的Z轴是南(+Z)，所以 y_std = -z_mc
+    const gamma_rad = Math.atan2(-op_dz, op_dx); // <--- 修正 2
 
-    // 5. 根据正弦定理计算OM的长度 (此部分逻辑正确)
-    // 三角形OPM中：
-    // 边OP = op_length
-    // 角M = |beta_rad - alpha_rad| (两条线的夹角)
-    // 角P = |gamma_rad - beta_rad| (OP线与PM线的夹角)
-    // OM / sin(P) = OP / sin(M) => OM = OP * sin(P) / sin(M)
+    // 5. 根据正弦定理计算OM的长度
     const sin_angle_M = Math.sin(beta_rad - alpha_rad);
 
     if (Math.abs(sin_angle_M) < 1e-9) {
@@ -79,12 +70,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const om_length = (op_length * sin_angle_P) / sin_angle_M;
 
     // 6. 计算要塞M的坐标
-    // 使用标准的极坐标转笛卡尔坐标公式:
-    // x_new = x_old + r * cos(theta)
-    // z_new = z_old + r * sin(theta)  (因为 Z 对应标准 y 轴)
-    // 修正: 原代码将 sin 和 cos 的应用弄反了。
+    // 使用标准的极坐标转笛卡尔坐标公式, 并将标准Y位移转为MC的Z位移
     const stronghold_x = x1 + om_length * Math.cos(alpha_rad);
-    const stronghold_z = z1 + om_length * Math.sin(alpha_rad);
+    // 标准Y位移 (sin) 与 MC的Z位移方向相反
+    const stronghold_z = z1 - om_length * Math.sin(alpha_rad);
 
     // 7. 显示结果
     resultText.textContent = `预测要塞坐标 (X, Z): (${stronghold_x.toFixed(1)}, ${stronghold_z.toFixed(1)})`;
