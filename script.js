@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const sin_angle_P = Math.sin(gamma_rad - beta_rad);
+    const sin_angle_P = Math.sin(beta_rad - gamma_rad);
     const om_length = (op_length * sin_angle_P) / sin_angle_M;
 
     // 6. 计算要塞M的坐标
